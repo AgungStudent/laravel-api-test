@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\LoginController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,5 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::middleware('guest')->group(function () {
-    Route::post('/login', [LoginController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/register', [AuthController::class, 'register'])->name('register');
 });

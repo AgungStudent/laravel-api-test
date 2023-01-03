@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules\Unique;
 
-class LoginRequest extends FormRequest
+class RegisterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,10 +25,10 @@ class LoginRequest extends FormRequest
      */
     public function rules()
     {
-        return
-            [
-                'email' => ['required', 'email'],
-                'password' => ['required', 'string'],
-            ];
+        return [
+            'email' => ['required', 'email', new Unique('users', 'email')],
+            'password' => ['required', 'string', Password::defaults()],
+            'name' => ['required', 'string']
+        ];
     }
 }

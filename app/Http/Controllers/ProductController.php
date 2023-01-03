@@ -2,13 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Repositories\ProductRepository;
+use App\Services\ProductService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response as ResponseCode;
 
 class ProductController extends Controller
 {
+
+    private ProductService $productService;
+    private ProductRepository $productRepository;
+
+    public function __construct(ProductService $productService, ProductRepository $productRepository)
+    {
+        $this->productService = $productService;
+        $this->productRepository = $productRepository;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,60 +32,22 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return new ProductCollection(Product::all());
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return response()->success($this->productRepository->getAllProducts());
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request): Response
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string'],
-            'quantity' => ['required'],
-            'uom' => ['required'],
-            'price' => ['required']
-        ]);
+        $product = $this->productService->store($request->validated());
 
-        $product = Product::create($validated);
-        return response()->json(['status' => 200, 'product' => $product]);
-
+        return response()->success(new ProductResource($product), ResponseCode::HTTP_CREATED);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param \App\Models\Product $product
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Product $product)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Product $product
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -78,17 +56,10 @@ class ProductController extends Controller
      * @param \App\Models\Product $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string'],
-            'quantity' => ['required'],
-            'uom' => ['required'],
-            'price' => ['required']
-        ]);
-
-        $data = $product->update($validated);
-        return response()->json(['status' => 200, 'product' => $product]);
+        $validated = $request->validated();
+        return response()->success(new ProductResource($product));
     }
 
     /**
@@ -99,6 +70,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $product->delete();
+        $this->productService->delete($product);
+
+        return response()->noContent();
     }
 }
